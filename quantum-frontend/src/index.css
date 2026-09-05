@@ -1,3 +1,6 @@
+/* ==========================================
+   1. CSS Variables & Global Reset
+   ========================================== */
 :root {
   --bg-color: #e2e8f0;
   --card-bg: #ffffff;
@@ -6,6 +9,7 @@
   --text-sub: #64748b;
   --accent-green: #10b981;
   --accent-green-hover: #059669;
+  --accent-blue: #38bdf8;
 }
 
 * {
@@ -27,33 +31,70 @@ body {
   flex-direction: column;
 }
 
+/* ==========================================
+   2. Top App Header & Navigation
+   ========================================== */
 .app-header {
-  background: #ffffff;
-  border-bottom: 1px solid var(--card-border);
+  background: #0f172a; /* Dark sleek header */
+  border-bottom: 1px solid #1e293b;
   padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.header-branding {
+.header-brand, .header-branding {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .logo-icon {
   font-size: 24px;
 }
 
-.header-branding h1 {
+.header-brand h1, .header-branding h1 {
   font-size: 1.15rem;
   font-weight: 700;
+  color: #f8fafc;
 }
 
 .header-branding p {
   font-size: 0.8rem;
-  color: var(--text-sub);
+  color: #94a3b8;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1e293b;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+}
+
+.nav-btn, .nav-tab {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover, .nav-tab:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-btn.active, .nav-tab.active {
+  color: #ffffff;
+  background: #0284c7;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .header-actions {
@@ -69,12 +110,22 @@ body {
   cursor: pointer;
 }
 
+/* ==========================================
+   3. Main Dashboard Layout (Simulator Tab)
+   ========================================== */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 280px 1fr 300px;
   gap: 16px;
   padding: 16px;
   flex: 1;
+}
+
+.dashboard-grid,
+.col-left,
+.col-center,
+.col-right {
+  min-width: 0; /* Prevents grid overflow */
 }
 
 .card {
@@ -137,11 +188,15 @@ select, input[type="number"], input[type="range"] {
 }
 
 .btn {
-  padding: 10px;
+  padding: 10px 16px;
   border-radius: 6px;
   border: none;
   font-weight: 600;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-primary {
@@ -158,12 +213,41 @@ select, input[type="number"], input[type="range"] {
   color: #fff;
 }
 
+.btn-secondary:hover {
+  background: #64748b;
+}
+
 .hint {
   font-size: 0.75rem;
   color: var(--text-sub);
   margin-bottom: 12px;
 }
 
+.tab-switcher {
+  display: flex;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tab-btn.active {
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* ==========================================
+   4. Gate Palette & Circuit Builder
+   ========================================== */
 .gate-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -191,35 +275,75 @@ select, input[type="number"], input[type="range"] {
 .gate-cyan { background: #cffafe; color: #155e75; }
 .gate-dark { background: #f1f5f9; color: #334155; }
 
-/* Circuit Builder Layout Fixes */
+/* Circuit Builder Layout */
 .circuit-builder {
-  min-height: 280px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-height: 240px;
+}
+
+.circuit-scroll-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  padding-bottom: 8px;
+}
+
+.circuit-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.circuit-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.circuit-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.circuit-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .circuit-canvas {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: max-content;
+  padding-right: 16px;
   margin-top: 12px;
 }
 
 .wire-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  position: relative;
 }
 
 .wire-label {
-  font-weight: bold;
-  font-size: 0.9rem;
-  width: 24px;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: #ffffff;
+  padding-right: 12px;
+  font-weight: 700;
+  color: #334155;
+  width: 32px;
+  flex-shrink: 0;
+  box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .wire-track {
   position: relative;
-  flex: 1;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .wire-line {
@@ -234,17 +358,19 @@ select, input[type="number"], input[type="range"] {
 
 .steps-container {
   display: flex;
-  width: 100%;
+  flex-shrink: 0;
   z-index: 2;
 }
 
 .grid-cell {
-  flex: 1;
+  width: 48px;
+  min-width: 48px;
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .grid-cell.hoverable:hover {
@@ -285,27 +411,56 @@ select, input[type="number"], input[type="range"] {
   cursor: pointer;
 }
 
-.tab-switcher {
-  display: flex;
-  padding: 4px;
-  gap: 4px;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 8px;
-  border: none;
-  background: transparent;
+.empty-slot-marker {
+  width: 26px;
+  height: 26px;
+  border: 1.5px dashed #cbd5e1;
   border-radius: 6px;
-  cursor: pointer;
+  background: #ffffff;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.grid-cell:hover .empty-slot-marker {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+  transform: scale(1.15);
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.step-btn {
+  background: #f1f5f9;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
   font-weight: 600;
+  cursor: pointer;
 }
 
-.tab-btn.active {
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+.step-btn:hover:not(:disabled) {
+  background: #e2e8f0;
 }
 
+.step-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   5. Results & Noise Settings
+   ========================================== */
 .results-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 180px;
@@ -360,242 +515,9 @@ select, input[type="number"], input[type="range"] {
   pointer-events: none;
 }
 
-.empty-slot-marker {
-  width: 26px;
-  height: 26px;
-  border: 1.5px dashed #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
-  user-select: none;
-  transition: all 0.15s ease;
-}
-
-.grid-cell:hover .empty-slot-marker {
-  border-color: #3b82f6;
-  color: #3b82f6;
-  background: #eff6ff;
-  transform: scale(1.15);
-}
-
-/* Scrollable Circuit Canvas */
-.circuit-scroll-container {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 8px;
-}
-
-.circuit-scroll-container::-webkit-scrollbar {
-  height: 6px;
-}
-
-.circuit-scroll-container::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
-}
-
-.circuit-scroll-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-.circuit-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.circuit-canvas {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: max-content;
-  padding-right: 12px;
-}
-
-.wire-track {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.steps-container {
-  display: flex;
-  flex-shrink: 0;
-  z-index: 2;
-}
-
-.grid-cell {
-  width: 48px;
-  min-width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.toolbar-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.step-btn {
-  background: #f1f5f9;
-  border: 1px solid var(--card-border);
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.step-btn:hover:not(:disabled) {
-  background: #e2e8f0;
-}
-
-.step-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* 1. Prevent Grid columns from expanding the entire website */
-.dashboard-grid,
-.col-left,
-.col-center,
-.col-right {
-  min-width: 0; /* CRITICAL: Forces grid items to respect screen bounds */
-}
-
-/* 2. Lock the Circuit Builder card strictly to column width */
-.circuit-builder {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden; /* Traps all overflow inside */
-}
-
-/* 3. The isolated inner scroll viewport */
-.circuit-scroll-container {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  box-sizing: border-box;
-  padding-bottom: 8px;
-}
-
-/* Custom internal scrollbar */
-.circuit-scroll-container::-webkit-scrollbar {
-  height: 6px;
-}
-
-.circuit-scroll-container::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
-}
-
-.circuit-scroll-container::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 3px;
-}
-
-/* 4. Canvas width extends horizontally without affecting parent card */
-.circuit-canvas {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: max-content; /* Stretches only inside scroll container */
-  padding-right: 16px;
-}
-
-.wire-row {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-/* 5. Freeze qubit labels on the left as steps slide under them */
-.wire-label {
-  position: sticky;
-  left: 0;
-  z-index: 10;
-  background: #ffffff; /* Matches card background to hide passing gates */
-  padding-right: 12px;
-  font-weight: 700;
-  color: #334155;
-  width: 32px;
-  flex-shrink: 0;
-  box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.05); /* Visual depth divider */
-}
-
-.wire-track {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.wire-line {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #94a3b8;
-  z-index: 1;
-}
-
-.steps-container {
-  display: flex;
-  z-index: 2;
-}
-
-.grid-cell {
-  width: 48px;
-  min-width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-/* Navigation Tabs in Header */
-.header-nav {
-  display: flex;
-  gap: 8px;
-  background: #f1f5f9;
-  padding: 4px;
-  border-radius: 8px;
-  border: 1px solid var(--card-border);
-}
-
-.nav-tab {
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: var(--text-sub);
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.nav-tab.active {
-  background: #ffffff;
-  color: var(--text-main);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Algorithms Page Container */
+/* ==========================================
+   6. Algorithms Page
+   ========================================== */
 .algorithms-wrapper {
   padding: 20px;
   max-width: 1200px;
@@ -664,7 +586,7 @@ select, input[type="number"], input[type="range"] {
   color: var(--text-sub);
 }
 
-/* Shor Form & Inputs */
+/* Shor Form & Factorization Displays */
 .shor-input-form {
   margin-top: 12px;
 }
@@ -679,48 +601,12 @@ select, input[type="number"], input[type="range"] {
   width: 140px;
 }
 
-.run-shor-btn {
-  padding: 8px 16px;
-}
-
 .card-subtitle {
   font-size: 0.85rem;
   color: var(--text-sub);
   margin-top: 2px;
 }
 
-.validation-error, .error-banner {
-  margin-top: 10px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.loading-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 20px;
-  font-weight: 500;
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid #cbd5e1;
-  border-top-color: var(--accent-green);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Factorization Banner */
 .result-banner {
   padding: 20px;
   border-radius: 10px;
@@ -762,7 +648,6 @@ select, input[type="number"], input[type="range"] {
   font-weight: 600;
 }
 
-/* Quantum / Classical Process Grid */
 .quantum-classical-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -811,7 +696,6 @@ select, input[type="number"], input[type="range"] {
   color: #1e40af;
 }
 
-/* Explanation Collapsible */
 .explanation-container {
   margin-top: 16px;
 }
@@ -844,3 +728,192 @@ select, input[type="number"], input[type="range"] {
 .step-explanation-list li {
   margin-bottom: 8px;
 }
+
+/* Validation and Error Banners */
+.validation-error, .error-banner {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.loading-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  font-weight: 500;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #cbd5e1;
+  border-top-color: var(--accent-green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================
+   7. Visual Qubit Page Grid & Dark Bloch Sphere
+   ========================================== */
+/* ==========================================
+   7. Visual Qubit Page Grid (Left Sidebar, Right Hero)
+   ========================================== */
+.visualizer-page-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr; /* 360px for Left Controls, 1fr for Right Hero Bloch Sphere */
+  gap: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .visualizer-page-grid {
+    grid-template-columns: 1fr; /* Stacks vertically on smaller screens */
+  }
+}
+
+.visualizer-sidebar,
+.visualizer-main-hero {
+  min-width: 0;
+}
+
+/* Sidebar (Left Column) */
+.sidebar-card {
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar-hint {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  margin-bottom: 12px;
+}
+
+.compact-palette-wrapper {
+  margin-bottom: 12px;
+}
+
+.compact-circuit-wrapper {
+  margin-top: 8px;
+}
+
+/* Main Hero Bloch Sphere (Right Column) */
+.hero-bloch-card {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #1e293b !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  padding: 24px !important;
+}
+
+.hero-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.hero-subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* 3D Canvas Sizing */
+.hero-svg-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 480px;
+  width: 100%;
+  margin: 12px 0;
+}
+
+.hero-svg-container svg {
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+}
+
+/* State Equation & Probability Bars */
+.hero-state-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.state-equation-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.state-equation-text {
+  font-family: 'Fira Code', monospace, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: #0f172a;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  word-break: break-all;
+}
+
+.probability-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.prob-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #0f172a;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+}
+
+.prob-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.green-text { color: #10b981; }
+.blue-text { color: #3b82f6; }
+
+.prob-bar-track {
+  height: 6px;
+  background: #334155;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.prob-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.green-fill { background: #10b981; }
+.blue-fill { background: #3b82f6; }

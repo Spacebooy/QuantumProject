@@ -7,10 +7,11 @@ import NoiseSettings from './components/NoiseSettings';
 import LearnPanel from './components/LearnPanel';
 import ResultsPanel from './components/ResultsPanel';
 import AlgorithmsPage from './components/algorithms/AlgorithmsPage';
+import QubitVisualizer from './components/QubitVisualizer';
 import { runSimulation } from './api';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('simulator'); // 'simulator' | 'algorithms'
+  const [currentPage, setCurrentPage] = useState('simulator'); // 'simulator' | 'algorithms' | 'visualizer'
   const [numQubits, setNumQubits] = useState(2);
   const [mode, setMode] = useState('ideal');
   const [selectedGate, setSelectedGate] = useState('H');
@@ -119,7 +120,7 @@ export default function App() {
     <div className="app-container">
       <Header currentPage={currentPage} setCurrentPage={setCurrentPage} />
 
-      {currentPage === 'simulator' ? (
+      {currentPage === 'simulator' && (
         <main className="dashboard-grid">
           <div className="col-left">
             <CircuitControls
@@ -154,6 +155,7 @@ export default function App() {
           </div>
 
           <div className="col-right">
+            {/* Tab Switcher */}
             <div className="tab-switcher card">
               <button
                 className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
@@ -169,20 +171,29 @@ export default function App() {
               </button>
             </div>
 
-            {activeTab === 'settings' ? (
+            {/* Tab Content */}
+            {activeTab === 'settings' && (
               <NoiseSettings
                 settings={noiseSettings}
                 setSettings={setNoiseSettings}
                 isNoisy={mode === 'noisy'}
               />
-            ) : (
-              <LearnPanel />
             )}
+            {activeTab === 'learn' && <LearnPanel />}
           </div>
         </main>
-      ) : (
+      )}
+
+      {currentPage === 'algorithms' && (
         <main className="algorithms-wrapper">
           <AlgorithmsPage />
+        </main>
+      )}
+
+
+      {currentPage === 'visualizer' && (
+        <main className="visualizer-wrapper">
+          <QubitVisualizer />
         </main>
       )}
     </div>
