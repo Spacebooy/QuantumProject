@@ -1,0 +1,16 @@
+:root { color-scheme: light; }
+.theme-toggle { margin-left: auto; flex-shrink: 0; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-main); border-radius: 5px; font-size: 12px; padding: 8px 12px; cursor: pointer; }.theme-toggle:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+[data-theme="dark"] { color-scheme: dark; --bg-color: #101722; --card-bg: #192231; --card-border: #303e52; --text-main: #e5edf9; --text-sub: #a7b5cb; --accent-blue: #82a9ff; --accent-green: #4f81ff; --accent-green-hover: #3868e4; }
+[data-theme="dark"] body { background: var(--bg-color); color: var(--text-main); }
+[data-theme="dark"] :is(.app-header,.dashboard-grid,.card,.col-right,.gate-symbol,.wire-label,.placed-gate,.btn-secondary,.step-btn,.tab-btn.active,select,input[type="number"],.algo-card,.prob-box) { background: var(--card-bg); color: var(--text-main); border-color: var(--card-border); }
+[data-theme="dark"] :is(.header-brand h1,.card-header h3,.tab-btn,.nav-btn,.gate-btn,.gate-symbol,.circuit-controls .form-group > label,.results-grid h4,.process-list,.metric-val,.hero-title,.explanation-toggle-btn) { color: var(--text-main); }
+[data-theme="dark"] :is(.nav-btn:hover,.gate-btn:hover,.gate-btn.active,.radio-label:hover,.radio-label:has(input:checked),.step-btn:hover,.btn-secondary:hover,.algo-card.active,.tab-btn:hover,.metrics-grid,.placeholder-text,.empty-slot-marker,.bar-wrapper,.result-banner,.shortcut-card) { background: #22344f; color: #c9dcff; border-color: #496189; }
+[data-theme="dark"] :is(.nav-btn.active,.gate-btn.active,.tab-btn.active) { color: var(--accent-blue); }
+[data-theme="dark"] .btn-primary { background: #285ce2; color: #fff; }
+[data-theme="dark"] .btn-primary:hover:not(:disabled) { background: #396def; }
+[data-theme="dark"] .wire-line { background: #63758f; }[data-theme="dark"] .grid-cell { border-right-color: #28374c; }
+[data-theme="dark"] .placed-gate { border-color: #779bea; color: #b8d0ff; }[data-theme="dark"] .grid-cell:hover .placed-gate { background: #2b4264; }
+[data-theme="dark"] .error-banner,[data-theme="dark"] .validation-error { background: #442632; color: #ffd0d4; border-color: #6a3648; }
+[data-theme="dark"] .noise-settings.disabled { opacity: .7; }
+@media(max-width:950px) { .app-header { flex-wrap: wrap; gap: 8px 16px; padding-top: 12px; }.header-nav { order: 3; width: 100%; min-height: 48px; overflow-x: auto; }.nav-btn { flex-shrink: 0; }.theme-toggle { margin-left: auto; } }
+@media(max-width:600px) { .nav-btn { flex: 0 0 auto; padding: 0 12px; font-size: 12px; } }

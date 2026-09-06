@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js",
+    "test:quantum": "TEST_SIMULATOR=http://127.0.0.1:8000 node --test tests/*.test.js"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

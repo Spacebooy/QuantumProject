@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from './components/Header';
 import CircuitControls from './components/CircuitControls';
 import GatePalette from './components/GatePalette';
@@ -9,8 +9,16 @@ import ResultsPanel from './components/ResultsPanel';
 import AlgorithmsPage from './components/algorithms/AlgorithmsPage';
 import QubitVisualizer from './components/QubitVisualizer';
 import { runSimulation } from './api';
+import PathFinderGame from './games/PathFinder/PathFinderGame';
 
 export default function App() {
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem('quantum-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch { return 'light'; }
+  });
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem('quantum-theme', theme); } catch { /* Theme still works when storage is unavailable. */ }
+  }, [theme]);
   const [currentPage, setCurrentPage] = useState('simulator'); // 'simulator' | 'algorithms' | 'visualizer'
   const [numQubits, setNumQubits] = useState(2);
   const [mode, setMode] = useState('ideal');
@@ -118,7 +126,7 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <Header currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      <Header currentPage={currentPage} setCurrentPage={setCurrentPage} theme={theme} onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} />
 
       {currentPage === 'simulator' && (
         <main className="dashboard-grid">
@@ -191,6 +199,8 @@ export default function App() {
         </main>
       )}
 
+
+      <div hidden={currentPage !== 'missions'}><PathFinderGame /></div>
 
       {currentPage === 'visualizer' && (
         <main className="visualizer-wrapper">
