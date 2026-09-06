@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Header from './components/Header';
 import CircuitControls from './components/CircuitControls';
 import GatePalette from './components/GatePalette';
@@ -123,15 +123,6 @@ export default function App() {
       {currentPage === 'simulator' && (
         <main className="dashboard-grid">
           <div className="col-left">
-            <CircuitControls
-              numQubits={numQubits}
-              setNumQubits={setNumQubits}
-              mode={mode}
-              setMode={setMode}
-              onRun={handleRunSimulation}
-              onClear={handleClearCircuit}
-              isLoading={isLoading}
-            />
             <GatePalette
               selectedGate={selectedGate}
               setSelectedGate={setSelectedGate}
@@ -144,6 +135,16 @@ export default function App() {
           </div>
 
           <div className="col-center">
+            <CircuitControls
+              numQubits={numQubits}
+              setNumQubits={setNumQubits}
+              mode={mode}
+              setMode={setMode}
+              onRun={handleRunSimulation}
+              onClear={handleClearCircuit}
+              isLoading={isLoading}
+            />
+
             <CircuitBuilder
               numQubits={numQubits}
               grid={grid}
@@ -161,13 +162,13 @@ export default function App() {
                 className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
                 onClick={() => setActiveTab('settings')}
               >
-                ⚙ Settings
+                Settings
               </button>
               <button
                 className={`tab-btn ${activeTab === 'learn' ? 'active' : ''}`}
                 onClick={() => setActiveTab('learn')}
               >
-                📖 Learn
+                Learn
               </button>
             </div>
 

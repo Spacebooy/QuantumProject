@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const getGateColorClass = (gate) => {
   const g = gate.toUpperCase();
@@ -28,7 +28,7 @@ export default function CircuitBuilder({
   return (
     <div className="card circuit-builder">
       <div className="card-header">
-        <h3>Circuit Builder ({numSteps} Steps)</h3>
+        <h3>Circuit canvas <span className="section-count">{numSteps} steps</span></h3>
         <div className="toolbar-actions">
           <button
             className="step-btn"
@@ -47,6 +47,7 @@ export default function CircuitBuilder({
         </div>
       </div>
 
+      <p className="hint canvas-hint">Select a gate to place it. Click a placed gate to remove it. Measurement is optional.</p>
       <div className="circuit-scroll-container">
         <div className="circuit-canvas">
           {qubits.map((q) => (
@@ -70,7 +71,17 @@ export default function CircuitBuilder({
                       <div
                         key={step}
                         className="grid-cell"
-                        onClick={() => onCellClick(q, step)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={cellOp ? `Remove ${cellOp.gate} at q${q}, step ${step + 1}` : `Place ${selectedGate || 'H'} at q${q}, step ${step + 1}`}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            if (cellOp) onRemoveGate(cellOp.id);
+                            else onCellClick(q, step);
+                          }
+                        }}
+                        onClick={() => cellOp ? onRemoveGate(cellOp.id) : onCellClick(q, step)}
                         title={
                           cellOp
                             ? 'Click gate to remove'
@@ -79,6 +90,7 @@ export default function CircuitBuilder({
                       >
                         {cellOp ? (
                           <div className="placed-gate-wrapper">
+                            {isControl && cellOp.target < numQubits && <span className="cnot-connector" aria-hidden="true" style={{ height: `${Math.abs(cellOp.target - q) * 88}px`, top: cellOp.target > q ? '50%' : 'auto', bottom: cellOp.target < q ? '50%' : 'auto' }} />}
                             {isControl && (
                               <div
                                 className="cnot-control-dot"
@@ -114,13 +126,13 @@ export default function CircuitBuilder({
                                   }}
                                 >
                                   {['MEASURE', 'Measure'].includes(cellOp.gate)
-                                    ? '⌖'
+                                    ? 'M'
                                     : cellOp.gate}
                                 </div>
                               )}
                           </div>
                         ) : (
-                          <div className="empty-slot-marker">+</div>
+                          <div className="empty-slot-marker"><span className="slot-plus">+</span><span className="slot-preview">{selectedGate === 'Measure' ? 'M' : selectedGate || 'H'}</span></div>
                         )}
                       </div>
                     );

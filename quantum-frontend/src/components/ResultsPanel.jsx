@@ -1,10 +1,9 @@
-import React from 'react';
 import ProbabilityPanel from './ProbabilityPanel';
 import AmplitudesPanel from './AmplitudesPanel';
 
 export default function ResultsPanel({ results, error }) {
   return (
-    <div className="card results-panel">
+    <div className="card results-panel" aria-live="polite">
       <div className="card-header">
         <h3>Results</h3>
       </div>
@@ -12,7 +11,7 @@ export default function ResultsPanel({ results, error }) {
       {error && <div className="error-banner">⚠️ {error}</div>}
 
       {!results && !error && (
-        <div className="placeholder-text">Click "Run Circuit" to execute simulation.</div>
+        <div className="placeholder-text">Your results will appear here. Run the circuit to explore probabilities, amplitudes, and measurement outcomes.</div>
       )}
 
       {results && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function CircuitControls({
   numQubits,
@@ -33,15 +33,11 @@ export default function CircuitControls({
   };
 
   return (
-    <div className="card circuit-controls">
-      <div className="card-header">
-        <h3>Simulation Controls</h3>
-        <span className="icon">⚙️</span>
-      </div>
-
+    <div className="card circuit-controls" aria-label="Simulation controls">
       <div className="form-group">
-        <label>Number of Qubits (1 - 15):</label>
+        <label htmlFor="qubit-count">Qubits <span className="control-limit">1–15</span></label>
         <input
+          id="qubit-count"
           type="number"
           min="1"
           max="15"
@@ -52,7 +48,7 @@ export default function CircuitControls({
       </div>
 
       <div className="form-group">
-        <label>Simulation Mode:</label>
+        <label>Mode</label>
         <div className="radio-group">
           <label className="radio-label">
             <input
@@ -79,10 +75,10 @@ export default function CircuitControls({
 
       <div className="button-stack">
         <button className="btn btn-primary" onClick={onRun} disabled={isLoading}>
-          {isLoading ? 'Simulating...' : '▶ Run Circuit'}
+          {isLoading ? <><span className="spinner" aria-hidden="true" /> Simulating…</> : <><span aria-hidden="true">▶</span> Run Circuit</>}
         </button>
         <button className="btn btn-secondary" onClick={onClear}>
-          🗑 Clear Circuit
+          Clear Circuit
         </button>
       </div>
     </div>

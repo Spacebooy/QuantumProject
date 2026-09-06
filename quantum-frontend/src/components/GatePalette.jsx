@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 const GATES = [
   { name: 'H', color: 'blue' },
@@ -29,19 +29,22 @@ export default function GatePalette({
   return (
     <div className="card gate-palette">
       <div className="card-header">
-        <h3>Gate Palette</h3>
-        <span className="icon">🎛</span>
+        <h3>Gate library</h3>
+        <span className="section-count">11 gates</span>
       </div>
-      <p className="hint">Select a gate, then click on a wire step to place it.</p>
+      <p className="hint">Select a gate, then click a wire slot.</p>
 
       <div className="gate-grid">
         {GATES.map((g) => (
           <button
             key={g.name}
+            aria-pressed={selectedGate === g.name}
+            title={g.name === 'Measure' ? 'Measurement (optional)' : g.name}
             className={`gate-btn gate-${g.color} ${selectedGate === g.name ? 'active' : ''}`}
             onClick={() => setSelectedGate(selectedGate === g.name ? null : g.name)}
           >
-            {g.name}
+            <span className="gate-symbol">{g.name === 'Measure' ? 'M' : g.name}</span>
+            <span className="gate-name">{({ H: 'Hadamard', X: 'Pauli X', Y: 'Pauli Y', Z: 'Pauli Z', S: 'Phase', T: 'T gate', Rx: 'Rotate X', Ry: 'Rotate Y', Rz: 'Rotate Z', CNOT: 'Controlled X', Measure: 'Measure' })[g.name]}</span>
           </button>
         ))}
       </div>
