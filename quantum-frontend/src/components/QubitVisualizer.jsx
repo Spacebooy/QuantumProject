@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import { useAuth } from '../context/auth-context';
+import { useState } from 'react';
 import BlochSphere from './BlochSphere';
 import GatePalette from './GatePalette';
 import CircuitBuilder from './CircuitBuilder';
 import { runSimulation } from '../api';
 
 export default function QubitVisualizer() {
+  const { token } = useAuth();
   const [selectedGate, setSelectedGate] = useState('H');
   const [thetaValue, setThetaValue] = useState(1.5708);
   const [grid, setGrid] = useState([
@@ -62,22 +64,7 @@ export default function QubitVisualizer() {
     });
 
     try {
-      let data;
-      try {
-        data = await runSimulation(1, 'ideal', operations);
-      } catch (err) {
-        const res = await fetch('http://127.0.0.1:8000/simulate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            num_qubits: 1,
-            mode: 'ideal',
-            operations,
-          }),
-        });
-        if (!res.ok) throw new Error('Simulation failed');
-        data = await res.json();
-      }
+      const data = await runSimulation(1, 'ideal', operations, token);
 
       if (data.amplitudes) {
         setAlpha(data.amplitudes['0'] || { real: 1, imag: 0 });

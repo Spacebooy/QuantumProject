@@ -35,7 +35,7 @@ test('generated mazes always have a route out, hazards, and varied junction size
 
 const enabled = Boolean(process.env.TEST_SIMULATOR);
 async function simulate(n, operations) {
-  const response = await fetch(`${process.env.TEST_SIMULATOR}/simulate`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({num_qubits:n,mode:'ideal',operations}) });
+  const response = await fetch(`${process.env.TEST_SIMULATOR}/simulate`, { method:'POST', headers:{'Content-Type':'application/json', ...(process.env.TEST_TOKEN ? {Authorization: `Bearer ${process.env.TEST_TOKEN}`} : {})}, body:JSON.stringify({num_qubits:n,mode:'ideal',operations}) });
   assert.ok(response.ok, await response.clone().text());
   return validateResult(await response.json(),n);
 }

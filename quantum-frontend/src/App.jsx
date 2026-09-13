@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react';
+import AuthModal from './components/auth/AuthModal';
+import UsageModal from './components/auth/UsageModal';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/auth-context';
 import Header from './components/Header';
 import CircuitControls from './components/CircuitControls';
 import GatePalette from './components/GatePalette';
@@ -11,7 +15,8 @@ import QubitVisualizer from './components/QubitVisualizer';
 import { runSimulation } from './api';
 import PathFinderGame from './games/PathFinder/PathFinderGame';
 
-export default function App() {
+function MainApp() {
+  const { token, isAuthenticated, openAuthModal, isAuthModalOpen, isUsageModalOpen } = useAuth();
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem('quantum-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch { return 'light'; }
   });
@@ -47,6 +52,10 @@ export default function App() {
   const [error, setError] = useState(null);
 
   const handleCellClick = (qubit, step) => {
+    if (!isAuthenticated && (qubit >= 2 || (selectedGate === 'CNOT' && cnotTarget >= 2))) {
+      openAuthModal('Sign in to create circuits with more than 2 qubits.');
+      return;
+    }
     const activeGate = selectedGate || 'H';
 
     if (activeGate.toUpperCase() === 'CNOT') {
@@ -98,6 +107,10 @@ export default function App() {
   };
 
   const handleRunSimulation = async () => {
+    if (!isAuthenticated && numQubits > 2) {
+      openAuthModal('Sign in to simulate circuits with more than 2 qubits.');
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
@@ -115,9 +128,10 @@ export default function App() {
     });
 
     try {
-      const data = await runSimulation(numQubits, mode, operations);
+      const data = await runSimulation(numQubits, mode, operations, token);
       setResults(data);
     } catch (err) {
+      if (err.status === 401 || err.status === 403) openAuthModal(err.message);
       setError(err.message || 'Simulation failed');
     } finally {
       setIsLoading(false);
@@ -207,6 +221,11 @@ export default function App() {
           <QubitVisualizer />
         </main>
       )}
+      {isAuthModalOpen && <AuthModal />}
+      {isUsageModalOpen && <UsageModal />}
     </div>
   );
+}
+export default function App() {
+  return <AuthProvider><MainApp /></AuthProvider>;
 }

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useAuth } from '../../context/auth-context';
 import { runSimulation } from '../../api';
 import { allGates, bits, diffusion, measuredIndex, minimumQubits, oracle, validateResult } from './quantumOperations';
 import { createMaze, missions, safeChoices } from './maze';
@@ -14,6 +15,7 @@ const modes = {
 const emptyStats = () => ({ actions: 0, gates: 0, oracles: 0, measurements: 0, moves: 0, energy: 0 });
 
 function Mission({ missionIndex, mode, onExit, onComplete }) {
+  const { token, openAuthModal } = useAuth();
   const [maze] = useState(() => createMaze(missions[missionIndex]));
   const [current, setCurrent] = useState(maze.start);
   const [visited, setVisited] = useState([maze.start]);
@@ -42,13 +44,13 @@ function Mission({ missionIndex, mode, onExit, onComplete }) {
   const unused = allocated ? 2 ** qubits - choices.length : 0;
 
   async function request(ops) {
-    return validateResult(await runSimulation(qubits, 'ideal', ops), qubits);
+    return validateResult(await runSimulation(qubits, 'ideal', ops, token), qubits);
   }
   async function transact(action) {
     if (lock.current) return;
     lock.current = true; setBusy(true); setError('');
     try { await action(); }
-    catch (e) { setError(`Scanner unavailable: ${e.message}. Check that the FastAPI simulator is running on port 8000, then retry. Your position and circuit have been kept.`); }
+    catch (e) { if (e.status === 401 || e.status === 403) { openAuthModal(e.message); setError(e.message); return; } setError(`Scanner unavailable: ${e.message}. Check that the FastAPI simulator is running on port 8000, then retry. Your position and circuit have been kept.`); }
     finally { lock.current = false; setBusy(false); }
   }
   const clearScanner = () => { setAllocated(false); setBatches([]); setQuantum(null); setBefore(null); };
