@@ -8,7 +8,7 @@ export default function ProbabilityPanel({ states }) {
   const entries = Object.entries(states);
 
   return (
-    <div className="probability-panel">
+    <div className="probability-panel" data-tutorial-id="probabilities">
       <h4>Probabilities of Basis States</h4>
       <div className="bar-chart">
         {entries.map(([state, prob]) => {

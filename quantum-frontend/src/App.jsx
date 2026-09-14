@@ -1,4 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useTutorial } from './tutorial/useTutorial';
+import TutorialOverlay from './tutorial/TutorialOverlay';
+import BlochSphere from './components/BlochSphere';
+import { circuitKey } from './tutorial/tutorialUtils';
+import './tutorial/tutorial.css';
+import { useEffect, useRef, useState } from 'react';
 import AuthModal from './components/auth/AuthModal';
 import UsageModal from './components/auth/UsageModal';
 import { AuthProvider } from './context/AuthContext';
@@ -50,6 +55,20 @@ function MainApp() {
   const [results, setResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const generation = useRef(0);
+  const snapshot = {grid, numQubits, mode, selectedGate, thetaValue, cnotTarget, activeTab, noiseSettings, results, error};
+  const latestSnapshot = useRef(snapshot);
+  useEffect(() => { latestSnapshot.current = snapshot; });
+  const restoreSimulator = saved => {
+    generation.current += 1;
+    setGrid(saved.grid); setNumQubits(saved.numQubits); setMode(saved.mode);
+    setSelectedGate(saved.selectedGate); setThetaValue(saved.thetaValue); setCnotTarget(saved.cnotTarget);
+    setActiveTab(saved.activeTab); setNoiseSettings(saved.noiseSettings); setResults(saved.results); setError(saved.error);
+    setIsLoading(false);
+  };
+  const tutorial = useTutorial(snapshot, restoreSimulator, setCurrentPage);
+  const navigate = page => { if(tutorial.active) tutorial.exit(); setCurrentPage(page); };
 
   const handleCellClick = (qubit, step) => {
     if (!isAuthenticated && (qubit >= 2 || (selectedGate === 'CNOT' && cnotTarget >= 2))) {
@@ -111,6 +130,8 @@ function MainApp() {
       openAuthModal('Sign in to simulate circuits with more than 2 qubits.');
       return;
     }
+    const requestGeneration = ++generation.current;
+    const submitted = snapshot;
     setIsLoading(true);
     setError(null);
 
@@ -129,23 +150,28 @@ function MainApp() {
 
     try {
       const data = await runSimulation(numQubits, mode, operations, token);
+      if (requestGeneration !== generation.current || circuitKey(submitted) !== circuitKey(latestSnapshot.current)) return;
       setResults(data);
+      tutorial.recordResult(data, submitted);
     } catch (err) {
+      if (requestGeneration !== generation.current) return;
       if (err.status === 401 || err.status === 403) openAuthModal(err.message);
       setError(err.message || 'Simulation failed');
     } finally {
-      setIsLoading(false);
+      if (requestGeneration === generation.current) setIsLoading(false);
     }
   };
 
   return (
-    <div className="app-container">
-      <Header currentPage={currentPage} setCurrentPage={setCurrentPage} theme={theme} onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} />
+    <div className={`app-container ${tutorial.active ? 'tutorial-active' : ''}`}>
+      <Header currentPage={currentPage} setCurrentPage={navigate} theme={theme} onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} />
 
+      {currentPage === 'simulator' && <div className="tutorial-entry"><button onClick={tutorial.active ? tutorial.exit : tutorial.open} disabled={!tutorial.active && isLoading}>{tutorial.active ? 'Exit Tutorial Mode' : 'Guided Tutorial'}</button></div>}
       {currentPage === 'simulator' && (
         <main className="dashboard-grid">
           <div className="col-left">
             <GatePalette
+              tutorialActive={tutorial.active}
               selectedGate={selectedGate}
               setSelectedGate={setSelectedGate}
               thetaValue={thetaValue}
@@ -158,6 +184,7 @@ function MainApp() {
 
           <div className="col-center">
             <CircuitControls
+              key={numQubits}
               numQubits={numQubits}
               setNumQubits={setNumQubits}
               mode={mode}
@@ -175,6 +202,11 @@ function MainApp() {
               onRemoveGate={handleRemoveGate}
             />
             <ResultsPanel results={results} error={error} />
+            {tutorial.running && numQubits === 1 && results?.num_qubits === 1 && results.amplitudes && <section className="card tutorial-bloch" data-tutorial-id="bloch" aria-label="Single qubit state on the Bloch sphere">
+              <h3>Current single-qubit state</h3>
+              <div><BlochSphere alpha={results.amplitudes['0']} beta={results.amplitudes['1']} /></div>
+              <p>A mathematical representation of the last API result{mode === 'noisy' ? ' (one noisy trajectory)' : ''}. Re-run after circuit changes.</p>
+            </section>}
           </div>
 
           <div className="col-right">
@@ -221,6 +253,7 @@ function MainApp() {
           <QubitVisualizer />
         </main>
       )}
+      {tutorial.active && <TutorialOverlay tutorial={tutorial} snapshot={snapshot} busy={isLoading} />}
       {isAuthModalOpen && <AuthModal />}
       {isUsageModalOpen && <UsageModal />}
     </div>

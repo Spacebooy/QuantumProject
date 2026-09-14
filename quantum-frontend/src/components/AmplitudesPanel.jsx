@@ -8,7 +8,7 @@ export default function AmplitudesPanel({ amplitudes, states }) {
   const entries = Object.entries(amplitudes);
 
   return (
-    <div className="amplitudes-panel">
+    <div className="amplitudes-panel" data-tutorial-id="amplitudes">
       <h4>Statevector Amplitudes</h4>
       <table className="data-table">
         <thead>

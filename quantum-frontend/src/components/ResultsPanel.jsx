@@ -3,7 +3,7 @@ import AmplitudesPanel from './AmplitudesPanel';
 
 export default function ResultsPanel({ results, error }) {
   return (
-    <div className="card results-panel" aria-live="polite">
+    <div className="card results-panel" data-tutorial-id="results" aria-live="polite">
       <div className="card-header">
         <h3>Results</h3>
       </div>
@@ -19,7 +19,7 @@ export default function ResultsPanel({ results, error }) {
           <ProbabilityPanel states={results.states} />
           <AmplitudesPanel amplitudes={results.amplitudes} states={results.states} />
           
-          <div className="measurement-readout">
+          <div className="measurement-readout" data-tutorial-id="measurement">
             <h4>Measurement Outcomes</h4>
             {results.measurements && results.measurements.length > 0 ? (
               results.measurements.map((m, idx) => (

@@ -1,0 +1,23 @@
+// The original precise explanation remains available under “Why does this work?”.
+export const plainExplanations = {
+ qubit:{welcome:'A qubit is what a quantum computer works with. When we measure it, we get 0 or 1. The symbols |0⟩ and |1⟩ are just how we write those two results.',prob:'The bars show the chance of getting each result. Amplitudes are the numbers used to calculate those chances—not the chances themselves.',normal:'All the chances must add up to 100%. That rule is called normalization.'},
+ x:{intro:'X is a flip: it changes 0 to 1, or 1 to 0.',sphere:'The arrow shows the qubit’s state. After X, it points toward 1. This sphere is a diagram, not an object inside the qubit.'},
+ h:{intro:'H can turn a definite 0 into a state with a 50% chance of measuring 0 and a 50% chance of measuring 1. Let’s try it.'},
+ phase:{relative:'These two states have the same 50/50 chances, but different signs in their amplitudes. That difference is called relative phase. It matters when we add more gates.',sphere:'Look at the arrow: it points in a different direction even though the chances stayed the same. This diagram helps us see relative phase.'},
+ z:{intro:'Z changes the sign of the part marked |1⟩. The chance bars may stay the same—but later gates can reveal the difference.',observe:'Notice the arrow changed direction. The chance bars alone don’t show everything about a quantum state.'},
+ y:{intro:'Y is another kind of flip. Starting from 0, it leads to 1. On our sphere diagram, it makes a half-turn around the y axis.',view:'Follow the arrow toward 1. The sphere is a picture of the state, not a physical object.'},
+ s:{intro:'S changes relative phase. On the sphere diagram, it turns an arrow on the middle ring by 90°.',compare:'S makes a 90° phase turn. T makes a smaller, 45° turn. Both can leave the chance bars unchanged.'},
+ t:{intro:'T changes relative phase by 45°—half as much as S.',compare:'Compare the arrow with the S lesson. T turns it 45° instead of 90°.'},
+ rotations:{intro:'These gates let you choose how far to turn the arrow. Rx turns around x, Ry around y, and Rz around z.',visual:'The arrow shows how the state changed. Turning around different axes in a different order can give a different result.'},
+ measurement:{intro:'Measuring gives one ordinary bit: 0 or 1. The chance bars tell us how likely each result is. One measurement cannot tell us the whole quantum state.',shots:'After measuring, one bar reaches 100%. Running again starts a fresh circuit, so you may get a different answer.'},
+ multiple:{intro:'With two qubits, the possible results are 00, 01, 10, and 11. In this app, q0 is the left digit and q1 is the right digit.',growth:'Each extra qubit doubles the number of possible bit strings. But one measurement gives only one of those strings.'},
+ cnot:{intro:'CNOT connects two qubits. If the control is 1, it flips the target. If the control is 0, it leaves the target alone.'},
+ entanglement:{meaning:'These two qubits now share a state that cannot be described as two separate pure states. That connection is called entanglement.',correlation:'When we measure this pair, we get 00 or 11—the bits match. This does not let anyone send messages faster than light.'},
+ noise:{intro:'Real devices aren’t perfect. Noisy mode models some things that can go wrong. Ideal mode leaves those errors out.',limits:'These sliders are not connected to the calculations yet. Noisy mode works, but it uses fixed settings. One run is only one sample.'},
+ t1:{intro:'T1 describes how a qubit loses energy. A qubit prepared as 1 can relax toward 0 over time.',limits:'This app does not yet let us vary waiting time or the real T1 setting. A short noisy run may still look close to 1.'},
+ t2:{intro:'T2 describes how the relationship between the two parts of a superposition fades. This can happen without an obvious change in the chance bars.',limits:'One noisy run does not show the whole pattern. These sliders do not change the calculations yet.'},
+ readout:{intro:'Sometimes the qubit is prepared correctly, but the device reports the wrong bit. This is called a readout error.',limits:'You would need many runs to estimate how often the readout is wrong. This slider is not connected to the calculations yet.'},
+ qft:{intro:'The Quantum Fourier Transform helps reveal patterns stored in quantum phases. It is one ingredient in Shor’s algorithm.'},
+ grover:{intro:'Grover’s search uses gates to increase the chance of finding a wanted answer. Quantum Missions lets you explore its main ideas.'},
+ shor:{intro:'Shor’s algorithm looks for repeating patterns to help find the factors of a number. Try the existing example in Algorithms.'},
+};

@@ -26,7 +26,7 @@ export default function CircuitBuilder({
   const handleRemoveStep = () => setNumSteps((prev) => Math.max(prev - 4, 8));
 
   return (
-    <div className="card circuit-builder">
+    <div className="card circuit-builder" data-tutorial-id="circuit">
       <div className="card-header">
         <h3>Circuit canvas <span className="section-count">{numSteps} steps</span></h3>
         <div className="toolbar-actions">
@@ -52,7 +52,7 @@ export default function CircuitBuilder({
         <div className="circuit-canvas">
           {qubits.map((q) => (
             <div key={q} className="wire-row">
-              <span className="wire-label">q{q}</span>
+              <span className="wire-label" data-tutorial-id={`wire-q${q}`}>q{q}</span>
 
               <div className="wire-track">
                 <div className="wire-line"></div>
@@ -70,7 +70,7 @@ export default function CircuitBuilder({
                     return (
                       <div
                         key={step}
-                        className="grid-cell"
+                        className="grid-cell" data-tutorial-id={`cell-q${q}-step${step}`}
                         role="button"
                         tabIndex={0}
                         aria-label={cellOp ? `Remove ${cellOp.gate} at q${q}, step ${step + 1}` : `Place ${selectedGate || 'H'} at q${q}, step ${step + 1}`}

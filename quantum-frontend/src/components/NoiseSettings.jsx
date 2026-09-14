@@ -6,7 +6,7 @@ export default function NoiseSettings({ settings, setSettings, isNoisy }) {
   };
 
   return (
-    <div className={`card noise-settings ${!isNoisy ? 'disabled' : ''}`}>
+    <div data-tutorial-id="noise" className={`card noise-settings ${!isNoisy ? 'disabled' : ''}`}>
       <div className="card-header">
         <h3>Noise Settings</h3>
         <span className="badge">{isNoisy ? 'Active' : 'Inactive'}</span>
@@ -18,7 +18,7 @@ export default function NoiseSettings({ settings, setSettings, isNoisy }) {
           type="range" 
           min="10" 
           max="500" 
-          value={settings.t1} 
+          data-tutorial-id="noise-t1" aria-label="t1" value={settings.t1}
           disabled={!isNoisy}
           onChange={(e) => handleChange('t1', e.target.value)} 
         />
@@ -30,7 +30,7 @@ export default function NoiseSettings({ settings, setSettings, isNoisy }) {
           type="range" 
           min="100" 
           max="5000" 
-          value={settings.t2} 
+          data-tutorial-id="noise-t2" aria-label="t2" value={settings.t2}
           disabled={!isNoisy}
           onChange={(e) => handleChange('t2', e.target.value)} 
         />
@@ -42,7 +42,7 @@ export default function NoiseSettings({ settings, setSettings, isNoisy }) {
           type="range" 
           min="0" 
           max="20" 
-          value={settings.singleQubitError} 
+          data-tutorial-id="noise-singleQubitError" aria-label="singleQubitError" value={settings.singleQubitError}
           disabled={!isNoisy}
           onChange={(e) => handleChange('singleQubitError', e.target.value)} 
         />
@@ -54,7 +54,7 @@ export default function NoiseSettings({ settings, setSettings, isNoisy }) {
           type="range" 
           min="0" 
           max="20" 
-          value={settings.twoQubitError} 
+          data-tutorial-id="noise-twoQubitError" aria-label="twoQubitError" value={settings.twoQubitError}
           disabled={!isNoisy}
           onChange={(e) => handleChange('twoQubitError', e.target.value)} 
         />
@@ -66,7 +66,7 @@ export default function NoiseSettings({ settings, setSettings, isNoisy }) {
           type="range" 
           min="0" 
           max="20" 
-          value={settings.readoutError} 
+          data-tutorial-id="noise-readoutError" aria-label="readoutError" value={settings.readoutError}
           disabled={!isNoisy}
           onChange={(e) => handleChange('readoutError', e.target.value)} 
         />
