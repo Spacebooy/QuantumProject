@@ -1,8 +1,10 @@
+import { useLanguage } from '../../i18n/language.js';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/auth-context';
 import { apiGetUsage } from '../../api';
 
 export default function UsageModal() {
+  const {language}=useLanguage();
   const { isUsageModalOpen, closeUsageModal, token, user } = useAuth();
   const [usageData, setUsageData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +35,7 @@ export default function UsageModal() {
             <span className="modal-icon">📊</span>
             <div>
               <h2>Simulation History</h2>
-              <p>Recent activity for {user?.full_name || 'Student'} ({user?.email})</p>
+              <p>Recent activity for <span translate="no">{user?.full_name || 'Student'}</span> (<span translate="no">{user?.email}</span>)</p>
             </div>
           </div>
         </div>
@@ -84,7 +86,7 @@ export default function UsageModal() {
                   <tbody>
                     {usageData.simulations.map((sim) => (
                       <tr key={sim.id}>
-                        <td>{sim.created_at ? new Date(sim.created_at).toLocaleTimeString() : 'N/A'}</td>
+                        <td>{sim.created_at ? new Date(sim.created_at).toLocaleTimeString(language==='vi'?'vi-VN':'en-US') : 'N/A'}</td>
                         <td>
                           <span className={`sim-type-badge ${sim.sim_type}`}>
                             {sim.sim_type.toUpperCase()}

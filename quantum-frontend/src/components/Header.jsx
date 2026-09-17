@@ -1,3 +1,4 @@
+import LanguageSwitcher from '../i18n/LanguageSwitcher';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/auth-context';
 export default function Header({ currentPage, setCurrentPage, theme, onToggleTheme }) {
@@ -28,6 +29,7 @@ export default function Header({ currentPage, setCurrentPage, theme, onToggleThe
             aria-current={currentPage === page ? 'page' : undefined} onClick={() => setCurrentPage(page)}>{label}</button>
         )) }
       </nav>
+      <LanguageSwitcher />
       <button className="theme-toggle" onClick={onToggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? '☀ Light' : '☾ Dark'}</button>
       <div className="account-actions auth-ui">
         {isAuthenticated ? (
@@ -41,7 +43,7 @@ export default function Header({ currentPage, setCurrentPage, theme, onToggleThe
                 {user?.full_name ? user.full_name[0].toUpperCase() : 'S'}
               </span>
               <div className="user-pill-info">
-                <span className="user-pill-name">{user?.full_name}</span>
+                <span className="user-pill-name" translate="no">{user?.full_name}</span>
                 <span className="user-pill-badge">🎓 Student</span>
               </div>
               <span className="dropdown-arrow">{isDropdownOpen ? '▲' : '▼'}</span>
@@ -50,8 +52,8 @@ export default function Header({ currentPage, setCurrentPage, theme, onToggleThe
             {isDropdownOpen && (
               <div className="user-dropdown-card">
                 <div className="dropdown-user-header">
-                  <strong>{user?.full_name}</strong>
-                  <span className="dropdown-email">{user?.email}</span>
+                  <strong translate="no">{user?.full_name}</strong>
+                  <span className="dropdown-email" translate="no">{user?.email}</span>
                 </div>
 
                 <div className="dropdown-divider" />

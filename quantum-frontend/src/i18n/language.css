@@ -1,0 +1,8 @@
+.language-switcher { display:flex; align-items:center; gap:6px; color:var(--text-sub); font-size:12px; flex-shrink:0; }
+.language-switcher select { background:var(--card-bg); color:var(--text-main); border:1px solid var(--card-border); border-radius:6px; padding:7px; }
+.app-header { flex-wrap:wrap; column-gap:18px; row-gap:8px; padding-top:10px; padding-bottom:10px; }
+html[lang="vi"] .nav-btn { padding-left:10px; padding-right:10px; }
+html[lang="vi"] .tutorial-panel { line-height:1.5; }
+html[lang="vi"] .tutorial-target-label { white-space:normal; }
+html[lang="vi"] .circuit-controls { flex-wrap:wrap; }
+@media(max-width:700px){.language-switcher>span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }.language-switcher {margin-left:auto;} .app-header .theme-toggle {margin-left:0;} }

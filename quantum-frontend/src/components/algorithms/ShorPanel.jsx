@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/auth-context';
 import { runShor } from '../../api';
-import ShorResults from './ShorResults';
+import ShorPlayback from './ShorPlayback';
 
 export default function ShorPanel() {
   const { token, openAuthModal } = useAuth();
@@ -64,7 +64,7 @@ export default function ShorPanel() {
           <div>
             <h2>Shor's Algorithm</h2>
             <p className="card-subtitle">
-              Factor a composite integer using quantum period finding and classical postprocessing.
+              Factor a number, then explore the gates, measurements and classical checks in your run.
             </p>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function ShorPanel() {
         </div>
       )}
 
-      {!isLoading && result && <ShorResults result={result} />}
+      {!isLoading && result && <ShorPlayback result={result} />}
     </div>
   );
 }

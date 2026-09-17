@@ -554,8 +554,11 @@ class QuantumState:
 
         self.state = new_state
 
-    def IQFT_register(self, qubits):
+    def IQFT_register(self, qubits, operation_log=None):
         n = len(qubits)
+        def record(label):
+            if operation_log is not None:
+                operation_log.append(label)
 
         # Undo the swaps for only this register
         for i in range(n // 2):
@@ -563,6 +566,8 @@ class QuantumState:
                 qubits[i],
                 qubits[n - 1 - i]
             )
+
+            record(f"SWAP q{qubits[i]}, q{qubits[n - 1 - i]}")
 
         # Undo controlled phases and Hadamards
         for target_pos in reversed(range(n)):
@@ -581,10 +586,14 @@ class QuantumState:
                     theta
                 )
 
+                record(f"CP({float(theta):.6f} rad) q{control} → q{target}")
+
             self.single_qubit_operator_calculator(
                 H,
                 target
             )
+
+            record(f"H q{target}")
 
     def register_probabilities(self, qubits):
         num_register_qubits = len(qubits)
@@ -879,7 +888,8 @@ def modular_exponentiation(
     counting_qubits,
     work_qubits,
     a,
-    N
+    N,
+    record=None
 ):
     num_counting = len(counting_qubits)
 
@@ -900,8 +910,22 @@ def modular_exponentiation(
             N=N
         )
 
+        if record:
+            record("modular", "Controlled modular multiplication",
+                   f"Control q{control}: multiply the work value by {multiplier} modulo {N} when the control is 1. This is a^({2 ** bit_power}) mod N for a = {a}.",
+                   kind="quantum", qubits=[control] + work_qubits,
+                   gates=[f"C×{multiplier} mod {N}"])
 
-def quantum_find_period(N, a, num_counting_qubits=3):
+
+def shor_event(trace, stage, title, explanation, **data):
+    if trace is not None:
+        trace.append({"stage": stage, "title": title,
+                      "explanation": explanation, "kind": "classical", **data})
+
+
+def quantum_find_period(N, a, num_counting_qubits=3, trace=None, attempt=1):
+    def record(stage, title, explanation, **data):
+        shor_event(trace, stage, title, explanation, attempt=attempt, **data)
     num_work_qubits = int(np.ceil(np.log2(N)))
 
     total_qubits = num_counting_qubits + num_work_qubits
@@ -917,6 +941,10 @@ def quantum_find_period(N, a, num_counting_qubits=3):
         )
     )
 
+    record("prepare", "Create two registers",
+           f"Initialize {num_counting_qubits} counting qubits and {num_work_qubits} work qubits to zero.",
+           kind="quantum", counting=counting, work=work, qubits=counting + work)
+
     # Put counting register into superposition
     for qubit in counting:
         q.single_qubit_operator_calculator(
@@ -924,11 +952,19 @@ def quantum_find_period(N, a, num_counting_qubits=3):
             qubit
         )
 
+    record("superposition", "Apply Hadamard gates",
+           f"The counting register now represents a superposition of {2 ** num_counting_qubits} inputs. These are amplitudes, not a list of readable answers.",
+           kind="quantum", qubits=counting, gates=[f"H q{i}" for i in counting])
+
     # Initialize work register to |1>
     q.single_qubit_operator_calculator(
         X,
         work[-1]
     )
+
+    record("initialize", "Prepare the work value 1",
+           f"Apply X to q{work[-1]}, the least significant work bit, to prepare |1⟩.",
+           kind="quantum", qubits=[work[-1]], gates=[f"X q{work[-1]}"])
 
     # Compute a^x mod N
     modular_exponentiation(
@@ -936,11 +972,16 @@ def quantum_find_period(N, a, num_counting_qubits=3):
         counting,
         work,
         a,
-        N
+        N,
+        record=record
     )
 
     # Apply inverse QFT to counting register
-    q.IQFT_register(counting)
+    qft_gates = []
+    q.IQFT_register(counting, operation_log=qft_gates)
+    record("qft", "Apply inverse QFT",
+           "Swaps, controlled phase rotations and Hadamards use interference to make information about the period measurable in the counting register.",
+           kind="quantum", qubits=counting, gates=qft_gates)
 
     counting_probs = q.register_probabilities(
         counting
@@ -957,8 +998,14 @@ def quantum_find_period(N, a, num_counting_qubits=3):
         f"0{len(counting)}b"
     )
 
+    record("measure", "Measure the counting register",
+           f"Observed {bits} (decimal {int(measured)}). Dividing by {2 ** len(counting)} gives phase {float(measured / 2 ** len(counting)):g}. A sample suggests a period; it does not directly give the factors.",
+           kind="quantum", qubits=counting, gates=["Measure"], measurement=bits)
+
     # Useless zero measurement
     if measured == 0:
+        record("retry", "Zero sample: try again",
+               "The zero phase gives no useful period denominator. Start another attempt.")
         return {
             "success": False,
             "measurement": bits,
@@ -979,15 +1026,23 @@ def quantum_find_period(N, a, num_counting_qubits=3):
 
     candidate_r = fraction.denominator
 
+    record("fraction", "Approximate the phase as a fraction",
+           f"{float(phase):g} ≈ {fraction}. Its denominator {candidate_r} is a candidate; a reduced fraction may hide part of the period.")
     recovered_r = None
 
+    checks = []
     for multiplier in range(1, N + 1):
         possible_r = candidate_r * multiplier
 
-        if pow(a, possible_r, N) == 1:
+        remainder = pow(a, possible_r, N)
+        checks.append(f"{a}^{possible_r} mod {N} = {remainder}")
+        if remainder == 1:
             recovered_r = possible_r
             break
 
+    record("verify", "Check candidate multiples",
+           f"Found a verified period multiple r = {recovered_r}." if recovered_r else "No tested multiple returned 1; another attempt is needed.",
+           gates=checks)
     return {
         "success": recovered_r is not None,
         "measurement": bits,
@@ -1029,11 +1084,18 @@ def shor(
             "N must be greater than 1"
         )
 
+    trace = []
+    def record(stage, title, explanation, **data):
+        shor_event(trace, stage, title, explanation, **data)
+
+    record("check", "Check the input", f"Test whether {N} is prime before attempting factorization.")
     # Prime check
     if is_prime(N):
+        record("complete", "The input is prime", f"{N} has no nontrivial factors. No quantum gates were used.")
         return {
             "success": False,
             "N": N,
+            "trace": trace,
             "is_prime": True,
             "message": (
                 f"{N} is prime. "
@@ -1043,9 +1105,11 @@ def shor(
 
     # Easy even number shortcut
     if N % 2 == 0:
+        record("complete", "Even-number shortcut", f"{N} is even: {N} = 2 × {N // 2}. No quantum gates were used.")
         return {
             "success": True,
             "N": N,
+            "trace": trace,
             "method": "even_number_shortcut",
             "factors": [
                 2,
@@ -1078,14 +1142,19 @@ def shor(
             N
         )
 
+        record("base", "Choose a base and check its GCD",
+               f"Choose a = {a}. gcd({a}, {N}) = {common_factor}.", attempt=attempt)
         # classical shortcut
         if common_factor != 1:
             factor1 = common_factor
             factor2 = N // common_factor
+            record("complete", "GCD shortcut found factors",
+                   f"The base shares a factor with {N}: {N} = {factor1} × {factor2}. This attempt needed no quantum gates.", attempt=attempt)
 
             return {
                 "success": True,
                 "N": N,
+                "trace": trace,
                 "a": a,
                 "method": "gcd_shortcut",
                 "attempts": attempt,
@@ -1099,7 +1168,9 @@ def shor(
             N=N,
             a=a,
             num_counting_qubits=
-                num_counting_qubits
+                num_counting_qubits,
+            trace=trace,
+            attempt=attempt
         )
 
         if not period_result["success"]:
@@ -1108,6 +1179,7 @@ def shor(
         r = period_result["period"]
 
         if r % 2 != 0:
+            record("retry", "Odd period: choose another base", f"r = {r} is odd. Factor extraction requires an even period.", attempt=attempt)
             continue
 
         x = pow(
@@ -1116,8 +1188,11 @@ def shor(
             N
         )
 
+        record("extract", "Use half the period",
+               f"r = {r} is even. {a}^({r}/2) mod {N} = {x}. Use this value in the two GCD checks.", attempt=attempt)
         # Bad Shor case
         if x == N - 1:
+            record("retry", "Unhelpful half-period value", f"The value is −1 modulo {N}; the GCD checks would give trivial factors. Choose another base.", attempt=attempt)
             continue
 
         factor1 = math.gcd(
@@ -1130,15 +1205,21 @@ def shor(
             N
         )
 
+        record("factors", "Calculate both GCDs",
+               f"gcd({x} − 1, {N}) = {factor1}; gcd({x} + 1, {N}) = {factor2}.", attempt=attempt)
         if factor1 in [1, N]:
+            record("retry", "Trivial factor", "The first GCD is 1 or N. Choose another base.", attempt=attempt)
             continue
 
         if factor2 in [1, N]:
+            record("retry", "Trivial factor", "The second GCD is 1 or N. Choose another base.", attempt=attempt)
             continue
 
+        record("complete", "Factorization complete", f"{N} = {factor1} × {factor2}.", attempt=attempt)
         return {
             "success": True,
             "N": N,
+            "trace": trace,
             "a": a,
             "method": "shor",
             "attempts": attempt,
@@ -1170,9 +1251,11 @@ def shor(
             ]
         }
 
+    record("complete", "Attempt limit reached", f"No nontrivial factors were found in {max_attempts} attempts. Try another run or more counting qubits.")
     return {
         "success": False,
         "N": N,
+        "trace": trace,
         "is_prime": False,
         "attempts": max_attempts,
         "message": (
