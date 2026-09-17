@@ -1,28 +1,54 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+import time
+import math
+from contextlib import asynccontextmanager
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException
+
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from Main import QuantumCircuit
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from Main import QuantumCircuit, shor
+from database import init_db, get_db
+from models import User, SimulationUsage
+from auth import router as auth_router, get_current_user_optional
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize database tables on startup
+    try:
+        init_db()
+        print("Database initialized successfully.")
+    except Exception as e:
+        raise RuntimeError("Database initialization failed") from e
+    yield
 
+
+app = FastAPI(lifespan=lifespan)
+
+# Allow requests from Vite frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Include Authentication Routes
+app.include_router(auth_router)
+
+
 class ShorRequest(BaseModel):
     N: int
-    num_counting_qubits: int | None = None
+    num_counting_qubits: Optional[int] = None
+
 
 class Operation(BaseModel):
     gate: str
@@ -37,30 +63,45 @@ class CircuitRequest(BaseModel):
     operations: List[Operation]
 
 
-@app.post("/shor")
-def run_shor(request: ShorRequest):
-    try:
-        return shor(
-            N=request.N,
-            num_counting_qubits=request.num_counting_qubits
-        )
-
-    except ValueError as error:
-        raise HTTPException(
-            status_code=400,
-            detail=str(error)
-        )
-
-
 @app.get("/")
 def root():
     return {
-        "message": "Quantum simulator API is running"
+        "message": "Quantum simulator API is running",
+        "features": {
+            "user_auth": True,
+            "max_guest_qubits": 2,
+            "max_student_qubits": 15,
+            "auth_methods": ["email_password"]
+        }
     }
 
 
 @app.post("/simulate")
-def simulate_circuit(request: CircuitRequest):
+def simulate_circuit(
+    request: CircuitRequest,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db)
+):
+    # Enforce access control: only registered users can create/simulate circuits with > 2 qubits
+    if request.num_qubits > 2 and current_user is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Creating or simulating circuits with more than 2 qubits is restricted to registered students. Please sign in or register to unlock up to 15 qubits."
+        )
+
+    if request.num_qubits < 1 or request.num_qubits > 15:
+        raise HTTPException(
+            status_code=400,
+            detail="num_qubits must be between 1 and 15"
+        )
+
+    if request.mode not in ["ideal", "noisy"]:
+        raise HTTPException(
+            status_code=400,
+            detail="mode must be 'ideal' or 'noisy'"
+        )
+
+    start_time = time.perf_counter()
 
     circuit = QuantumCircuit(
         request.num_qubits,
@@ -68,7 +109,6 @@ def simulate_circuit(request: CircuitRequest):
     )
 
     for operation in request.operations:
-
         gate = operation.gate.upper()
 
         if operation.target is not None:
@@ -77,18 +117,6 @@ def simulate_circuit(request: CircuitRequest):
                     status_code=400,
                     detail=f"Invalid target qubit: {operation.target}"
                 )
-
-        if request.num_qubits < 1 or request.num_qubits > 15:
-            raise HTTPException(
-                status_code=400,
-                detail="num_qubits must be between 1 and 15"
-            )
-
-        if request.mode not in ["ideal", "noisy"]:
-            raise HTTPException(
-                status_code=400,
-                detail="mode must be 'ideal' or 'noisy'"
-            )
 
         if gate == "H":
             circuit.h(operation.target)
@@ -109,7 +137,6 @@ def simulate_circuit(request: CircuitRequest):
             circuit.t(operation.target)
 
         elif gate == "CNOT":
-
             if operation.control is None:
                 raise HTTPException(
                     status_code=400,
@@ -140,7 +167,6 @@ def simulate_circuit(request: CircuitRequest):
             )
 
         elif gate == "RX":
-
             if operation.theta is None:
                 raise HTTPException(
                     status_code=400,
@@ -153,7 +179,6 @@ def simulate_circuit(request: CircuitRequest):
             )
 
         elif gate == "RY":
-
             if operation.theta is None:
                 raise HTTPException(
                     status_code=400,
@@ -166,7 +191,6 @@ def simulate_circuit(request: CircuitRequest):
             )
 
         elif gate == "RZ":
-
             if operation.theta is None:
                 raise HTTPException(
                     status_code=400,
@@ -188,6 +212,7 @@ def simulate_circuit(request: CircuitRequest):
             )
 
     state, measurements = circuit.action()
+    exec_time_ms = (time.perf_counter() - start_time) * 1000.0
 
     probabilities = state.Pcalc()
     states = {}
@@ -197,14 +222,29 @@ def simulate_circuit(request: CircuitRequest):
         states[basis] = float(probability)
 
     amplitudes = {}
-
     for i, amplitude in enumerate(state.state):
         basis = format(i, f"0{request.num_qubits}b")
-
         amplitudes[basis] = {
             "real": float(amplitude.real),
             "imag": float(amplitude.imag)
         }
+
+    # Record simulation usage in Postgres
+    try:
+        usage = SimulationUsage(
+            user_id=current_user.id if current_user else None,
+            sim_type="circuit",
+            num_qubits=request.num_qubits,
+            gate_count=len(request.operations),
+            mode=request.mode,
+            operations_summary=[op.model_dump() for op in request.operations],
+            execution_time_ms=round(exec_time_ms, 2)
+        )
+        db.add(usage)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Warning: Failed to log simulation usage: {e}")
 
     return {
         "num_qubits": request.num_qubits,
@@ -212,12 +252,57 @@ def simulate_circuit(request: CircuitRequest):
         "probabilities": probabilities.tolist(),
         "states": states,
         "amplitudes": amplitudes,
-        "measurements": measurements
+        "measurements": measurements,
+        "execution_time_ms": round(exec_time_ms, 2)
     }
 
-    return {
-        "num_qubits": request.num_qubits,
-        "mode": request.mode,
-        "probabilities": probabilities.tolist(),
-        "measurements": measurements
-    }
+
+@app.post("/shor")
+def run_shor(
+    request: ShorRequest,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db)
+):
+    if request.N <= 1:
+        raise HTTPException(status_code=400, detail="N must be greater than 1")
+    num_counting = request.num_counting_qubits if request.num_counting_qubits is not None else 2 * math.ceil(math.log2(request.N))
+    if num_counting < 1 or num_counting + math.ceil(math.log2(request.N)) > 20:
+        raise HTTPException(status_code=400, detail="Counting qubits must be positive and total qubits cannot exceed 20")
+    if num_counting > 2 and current_user is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Running Shor's algorithm with more than 2 counting qubits is restricted to registered students. Please sign in or register."
+        )
+
+    start_time = time.perf_counter()
+    try:
+        result = shor(
+            N=request.N,
+            num_counting_qubits=request.num_counting_qubits
+        )
+        exec_time_ms = (time.perf_counter() - start_time) * 1000.0
+
+        # Record simulation usage
+        try:
+            usage = SimulationUsage(
+                user_id=current_user.id if current_user else None,
+                sim_type="shor",
+                num_qubits=num_counting,
+                gate_count=0,
+                mode="ideal",
+                operations_summary={"N": request.N, "num_counting_qubits": request.num_counting_qubits},
+                execution_time_ms=round(exec_time_ms, 2)
+            )
+            db.add(usage)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"Warning: Failed to log shor simulation usage: {e}")
+
+        return result
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )

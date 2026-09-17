@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useAuth } from '../../context/auth-context';
 import { runShor } from '../../api';
-import ShorResults from './ShorResults';
+import ShorPlayback from './ShorPlayback';
 
 export default function ShorPanel() {
+  const { token, openAuthModal } = useAuth();
   const [inputValue, setInputValue] = useState('15');
   const [isAuto, setIsAuto] = useState(true);
   const [countingQubits, setCountingQubits] = useState('4');
@@ -45,9 +47,10 @@ export default function ShorPanel() {
     setResult(null);
 
     try {
-      const data = await runShor(nNum, numCountingQubits);
+      const data = await runShor(nNum, numCountingQubits, token);
       setResult(data);
     } catch (err) {
+      if (err.status === 401 || err.status === 403) openAuthModal(err.message);
       setApiError(err.message || 'Failed to execute Shor algorithm');
     } finally {
       setIsLoading(false);
@@ -61,7 +64,7 @@ export default function ShorPanel() {
           <div>
             <h2>Shor's Algorithm</h2>
             <p className="card-subtitle">
-              Factor a composite integer using quantum period finding and classical postprocessing.
+              Factor a number, then explore the gates, measurements and classical checks in your run.
             </p>
           </div>
         </div>
@@ -159,7 +162,7 @@ export default function ShorPanel() {
         </div>
       )}
 
-      {!isLoading && result && <ShorResults result={result} />}
+      {!isLoading && result && <ShorPlayback result={result} />}
     </div>
   );
 }

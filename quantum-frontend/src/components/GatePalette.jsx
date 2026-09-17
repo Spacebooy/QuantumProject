@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { gateInfo } from '../tutorial/tutorialLessons';
 
 
 const GATES = [
@@ -15,6 +17,7 @@ const GATES = [
 ];
 
 export default function GatePalette({
+  tutorialActive = false,
   selectedGate,
   setSelectedGate,
   thetaValue,
@@ -23,6 +26,7 @@ export default function GatePalette({
   setCnotTarget,
   numQubits,
 }) {
+  const [infoGate, setInfoGate] = useState(null);
   const isRotationSelected = ['Rx', 'Ry', 'Rz'].includes(selectedGate);
   const isCnotSelected = selectedGate === 'CNOT';
 
@@ -36,21 +40,25 @@ export default function GatePalette({
 
       <div className="gate-grid">
         {GATES.map((g) => (
+          <div className="gate-with-info" key={g.name}>
           <button
-            key={g.name}
+            data-tutorial-id={`gate-${g.name.toLowerCase()}`}
             aria-pressed={selectedGate === g.name}
-            title={g.name === 'Measure' ? 'Measurement (optional)' : g.name}
+            title={gateInfo[g.name.toUpperCase()]}
             className={`gate-btn gate-${g.color} ${selectedGate === g.name ? 'active' : ''}`}
             onClick={() => setSelectedGate(selectedGate === g.name ? null : g.name)}
           >
             <span className="gate-symbol">{g.name === 'Measure' ? 'M' : g.name}</span>
             <span className="gate-name">{({ H: 'Hadamard', X: 'Pauli X', Y: 'Pauli Y', Z: 'Pauli Z', S: 'Phase', T: 'T gate', Rx: 'Rotate X', Ry: 'Rotate Y', Rz: 'Rotate Z', CNOT: 'Controlled X', Measure: 'Measure' })[g.name]}</span>
           </button>
+          {!tutorialActive && <button className="gate-info-button" aria-label={`About ${g.name}`} aria-expanded={infoGate===g.name} onClick={()=>setInfoGate(infoGate===g.name?null:g.name)}>i</button>}
+          </div>
         ))}
+        {!tutorialActive && infoGate && <p className="gate-help" role="status"><strong>{infoGate}: </strong>{gateInfo[infoGate.toUpperCase()]}</p>}
       </div>
 
       {isRotationSelected && (
-        <div className="form-group rotation-input" style={{ marginTop: '12px' }}>
+        <div data-tutorial-id="angle" className="form-group rotation-input" style={{ marginTop: '12px' }}>
           <label>Rotation Angle θ (rad):</label>
           <input
             type="number"
@@ -62,7 +70,7 @@ export default function GatePalette({
       )}
 
       {isCnotSelected && (
-        <div className="form-group cnot-target-input" style={{ marginTop: '12px' }}>
+        <div data-tutorial-id="cnot-target" className="form-group cnot-target-input" style={{ marginTop: '12px' }}>
           <label>CNOT Target Qubit:</label>
           <select
             value={cnotTarget}

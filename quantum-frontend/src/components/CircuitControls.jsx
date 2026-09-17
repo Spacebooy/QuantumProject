@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useAuth } from '../context/auth-context';
+import { useState } from 'react';
 
 export default function CircuitControls({
   numQubits,
@@ -9,11 +10,9 @@ export default function CircuitControls({
   onClear,
   isLoading
 }) {
+  const { isAuthenticated, openAuthModal } = useAuth();
   const [inputValue, setInputValue] = useState(numQubits.toString());
 
-  useEffect(() => {
-    setInputValue(numQubits.toString());
-  }, [numQubits]);
 
   const handleInputChange = (e) => {
     const val = e.target.value;
@@ -21,6 +20,11 @@ export default function CircuitControls({
 
     const parsed = parseInt(val, 10);
     if (!isNaN(parsed) && parsed >= 1 && parsed <= 15) {
+      if (!isAuthenticated && parsed > 2) {
+        openAuthModal('Sign in to unlock circuits with up to 15 qubits.');
+        setInputValue(numQubits.toString());
+        return;
+      }
       setNumQubits(parsed);
     }
   };
@@ -35,9 +39,9 @@ export default function CircuitControls({
   return (
     <div className="card circuit-controls" aria-label="Simulation controls">
       <div className="form-group">
-        <label htmlFor="qubit-count">Qubits <span className="control-limit">1–15</span></label>
+        <label htmlFor="qubit-count">Qubits <span className="control-limit">{isAuthenticated ? '1–15' : '1–2 · Sign in for more'}</span></label>
         <input
-          id="qubit-count"
+          data-tutorial-id="qubit-count" id="qubit-count"
           type="number"
           min="1"
           max="15"
@@ -49,7 +53,7 @@ export default function CircuitControls({
 
       <div className="form-group">
         <label>Mode</label>
-        <div className="radio-group">
+        <div className="radio-group" data-tutorial-id="mode">
           <label className="radio-label">
             <input
               type="radio"
@@ -74,7 +78,7 @@ export default function CircuitControls({
       </div>
 
       <div className="button-stack">
-        <button className="btn btn-primary" onClick={onRun} disabled={isLoading}>
+        <button className="btn btn-primary" data-tutorial-id="run" onClick={onRun} disabled={isLoading}>
           {isLoading ? <><span className="spinner" aria-hidden="true" /> Simulating…</> : <><span aria-hidden="true">▶</span> Run Circuit</>}
         </button>
         <button className="btn btn-secondary" onClick={onClear}>

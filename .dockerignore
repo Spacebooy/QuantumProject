@@ -1,0 +1,17 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.gitignore
+quantum-frontend/node_modules
+quantum-frontend/dist
+.DS_Store
+
+
+.env
+.venv
+*.db
+*.db-*
+wheels
+.pytest_cache

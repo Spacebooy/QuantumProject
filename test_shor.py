@@ -295,3 +295,67 @@ if __name__ == "__main__":
     print(
         f"{passed}/{len(tests)} tests passed"
     )
+
+def test_shor_trace_success_matches_executed_gates(monkeypatch):
+    import json
+    import Main
+
+    monkeypatch.setattr(Main.random, "randint", lambda *_: 2)
+    monkeypatch.setattr(Main.np.random, "choice", lambda *args, **kwargs: 4)
+    result = Main.shor(15, num_counting_qubits=4)
+    assert result["success"] and sorted(result["factors"]) == [3, 5]
+    trace = result["trace"]
+    stages = [event["stage"] for event in trace]
+    assert stages == ["check", "base", "prepare", "superposition", "initialize",
+                      "modular", "modular", "modular", "modular", "qft",
+                      "measure", "fraction", "verify", "extract", "factors", "complete"]
+    qft = next(event for event in trace if event["stage"] == "qft")
+    assert len(qft["gates"]) == 12  # 2 swaps, 6 controlled phases, 4 Hadamards
+    assert qft["gates"][0] == "SWAP q0, q3"
+    measurement = next(event for event in trace if event["stage"] == "measure")
+    assert measurement["measurement"] == result["measurement"] == "0100"
+    assert "2^4 mod 15 = 1" in next(event for event in trace if event["stage"] == "verify")["gates"]
+    json.dumps(result)  # The trace must be safe to return through the API.
+
+
+def test_shor_trace_preserves_zero_attempt_before_shortcut(monkeypatch):
+    import Main
+
+    bases = iter([2, 3])
+    monkeypatch.setattr(Main.random, "randint", lambda *_: next(bases))
+    monkeypatch.setattr(Main.np.random, "choice", lambda *args, **kwargs: 0)
+    result = Main.shor(15, num_counting_qubits=2)
+    assert result["method"] == "gcd_shortcut" and result["attempts"] == 2
+    assert any(event["stage"] == "retry" and event["attempt"] == 1 for event in result["trace"])
+    assert not any(event["kind"] == "quantum" and event["attempt"] == 2 for event in result["trace"])
+    assert result["trace"][-1]["stage"] == "complete"
+
+
+def test_shor_trace_classical_shortcuts():
+    import Main
+
+    for number in (7, 12):
+        result = Main.shor(number)
+        assert all(event["kind"] == "classical" for event in result["trace"])
+        assert result["trace"][-1]["stage"] == "complete"
+
+
+def test_shor_trace_attempt_limit(monkeypatch):
+    import Main
+
+    monkeypatch.setattr(Main.random, "randint", lambda *_: 2)
+    monkeypatch.setattr(Main.np.random, "choice", lambda *args, **kwargs: 0)
+    result = Main.shor(15, num_counting_qubits=2, max_attempts=2)
+    assert not result["success"]
+    assert [event["attempt"] for event in result["trace"] if event["stage"] == "retry"] == [1, 2]
+    assert result["trace"][-1]["title"] == "Attempt limit reached"
+
+
+def test_shor_trace_odd_and_unhelpful_periods(monkeypatch):
+    import Main
+
+    monkeypatch.setattr(Main.random, "randint", lambda *_: 2)
+    for period, title in [(3, "Odd period: choose another base"), (6, "Unhelpful half-period value")]:
+        monkeypatch.setattr(Main, "quantum_find_period", lambda **kwargs: {"success": True, "period": period})
+        result = Main.shor(9, num_counting_qubits=2, max_attempts=1)
+        assert any(event["title"] == title for event in result["trace"])

@@ -32,3 +32,16 @@
 .fog-room { opacity: .15; }.fog-room rect { fill: #a9bdd7; stroke: #93a9c5; stroke-dasharray: 4 5; }.fog-room text { text-anchor: middle; fill: #7692b6; font-size: 23px; }
 .gate-recipe { max-height: 220px; overflow: auto; padding: 14px; background: var(--game-soft); margin-top: 10px; color: var(--game-ink); }
 @media(max-width:600px) { .maze-scroll { max-height: 320px; } }
+
+.training-lobby, .training-guide { border: 1px solid var(--accent-blue, #3b82f6); background: var(--card-bg, #fff); border-radius: 16px; padding: 22px; margin: 20px 0; color: var(--text-main, #17233d); }
+.training-lobby { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.training-lobby h2, .training-guide h2 { margin: 8px 0; font-size: 1.2rem; }
+.training-lobby p, .training-guide p { line-height: 1.7; margin: 8px 0; }
+.training-lobby button { flex-shrink: 0; }
+.training-guide-top { display: flex; align-items: center; gap: 14px; font-size: .75rem; letter-spacing: .05em; }
+.training-guide-top button { margin-left: auto; }
+.training-guide progress { width: 100%; height: 6px; accent-color: var(--accent-blue, #3b82f6); }
+.training-target { outline: 3px solid var(--accent-blue, #3b82f6) !important; outline-offset: 4px; box-shadow: 0 0 0 7px rgb(59 130 246 / 12%); }
+.training-target:focus-visible { outline-style: dashed !important; }
+.training-finish { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+@media (max-width: 650px) { .training-lobby { align-items: stretch; flex-direction: column; } .training-guide { padding: 16px; } }
