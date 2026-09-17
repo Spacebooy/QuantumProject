@@ -1,9 +1,10 @@
+import { viGameTraining } from './viGameTraining.js';
 import { viShor, shorPatterns } from './viShor.js';
 import { vi } from './vi.js';
 import { viGame } from './viGame.js';
 import { viTutorial } from './viTutorial.js';
 import { viInterface } from './viInterface.js';
-export const catalog={...vi,...viGame,...viTutorial,...viInterface,...viShor};
+export const catalog={...vi,...viGame,...viTutorial,...viInterface,...viShor,...viGameTraining};
 const patterns=[
  ...shorPatterns,
  [/^Invalid (target|control) qubit: (.+)$/,(_,kind,n)=>`Qubit ${kind==='target'?'đích':'điều khiển'} không hợp lệ: ${n}`],

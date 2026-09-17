@@ -62,3 +62,9 @@ Modified:
 - `eslint.config.js` — Node globals for test files.
 
 No Python/backend files changed. Existing simulator and algorithms behavior is preserved; they now use the same API proxy.
+
+## Playable training mission
+
+The lobby's **Start tutorial** opens a fixed two-qubit practice room in Guided scanner mode. Six successful actions teach allocation, superposition, the safety oracle, one diffusion round, measurement, and backtracking. Exactly one of four corridors is safe, so the existing ideal simulator amplifies that state to probability 1; its destination is a dead end to teach that safety is not a route-to-exit oracle. Completing the backtrack ends training and offers First Light or Replay. It does not award regular mission stars.
+
+The highlighted instruction follows committed scanner state, including Undo and Reset. Failed requests preserve the step, and a hazard/unused measurement returns to allocation through the normal movement logic. Skip returns to the lobby; replay creates a new practice session. Completion is retained only in the current session, like mission progress. The tutorial uses the normal `/simulate` endpoint, with no fabricated states or measurement overrides. English and Vietnamese instructions are included.
